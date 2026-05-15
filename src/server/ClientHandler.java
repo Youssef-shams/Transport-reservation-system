@@ -25,7 +25,7 @@ public class ClientHandler implements Runnable {
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
         ) {
-            out.println("Welcome to the Transport Reservation System! Type VIEW to see seats, BOOK [SeatNumber] to reserve, or QUIT to exit.");
+            out.println("Welcome to the Transport Reservation System!");
 
             String request;
             //The server stays in this loop, constantly listening to this specific client
@@ -37,12 +37,28 @@ public class ClientHandler implements Runnable {
                     break; //Exits the loop and disconnects this client
                 }
                 else if (request.equalsIgnoreCase("VIEW")) {
-                    //Send a list of all available seats
-                    out.println("--- Available Seats ---");
-                    for (Map.Entry<String, TransportSeat> entry : inventory.getAllSeats().entrySet()) {
-                        if (!entry.getValue().isBooked()) {
-                            out.println(entry.getValue().getSeatDetails());
+                    out.println("--- Seating Chart ([V]=VIP, [E]=Economy, [X]=Booked) ---");
+
+                    int count = 0;
+                    StringBuilder row = new StringBuilder();
+
+                    // Use a sorted approach or loop through rows 1-10 and columns A-D
+                    for (int i = 1; i <= 10; i++) {
+                        for (char col = 'A'; col <= 'D'; col++) {
+                            String seatID = i + "" + col;
+                            TransportSeat s = inventory.getSeat(seatID);
+
+                            if (s == null) continue;
+
+                            String typeLabel = (s instanceof models.VIPSeat) ? "V" : "E";
+                            if (s.isBooked()) {
+                                row.append("[ X ] ");
+                            } else {
+                                row.append("[" + typeLabel + ":" + seatID + "] ");
+                            }
                         }
+                        out.println(row.toString());
+                        row.setLength(0); // Clear for next row
                     }
                     out.println("END_OF_LIST");
                 }
